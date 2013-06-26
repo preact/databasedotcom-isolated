@@ -17,7 +17,7 @@ module Databasedotcom
 
         def client
           @client ||= Databasedotcom::Client.new(self.options.slice(*CLIENT_OPTIONS)).tap do |client|
-            client.sobject_module = scope
+            client.sobject_module = self
             self.options.slice(*AUTHENTICATION_OPTIONS).tap do |auth_options|
               client.authenticate(auth_options) unless auth_options.empty?
             end
@@ -36,8 +36,13 @@ module Databasedotcom
         end
 
         # Force a class materialization
-        def meterialize(klass)
+        def materialize(klass)
           self.const_set(klass, self.client.materialize(klass.to_s))
+        end
+
+        #materalized any cased string into a Custom object
+        def materialize_custom(obj)
+          self.const_set('Custom', self.client.materialize(obj))
         end
 
         def method_missing(sym,*args)
